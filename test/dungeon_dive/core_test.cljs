@@ -1,11 +1,11 @@
 (ns dungeon-dive.core-test
     (:require
      [cljs.test :refer-macros [deftest is testing]]
-     [dungeon-dive.core]))
+     [dungeon-dive.core :as core]))
 
-(comment (deftest multiply-test
-  (is (= (* 1 2) (multiply 1 2))))
-
-(deftest multiply-test-2
-  (is (= (* 75 10) (multiply 10 75))))
-)
+(deftest is-dead?-test
+  (is (= false (core/is-dead? {:health 10})))
+  (is (= false (core/is-dead? {:health 99})))
+  (is (= false (core/is-dead? {:health 1})))
+  (is (= true (core/is-dead? {:health 0})))
+  (is (= true (core/is-dead? {:health -1}))))
