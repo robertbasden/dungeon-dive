@@ -29,7 +29,7 @@
                          :level 1
                          :exp 0
                          :steps 0}
-                :messages []}))
+                :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]}))
 
 (defn back-to-title []
   (swap! app-state assoc :current-screen :title))
@@ -58,10 +58,12 @@
       (for [message (reverse (sort-by :added messages))]
         ^{:key (:id message)} [adventure-log-entry (:text message)])]]))
 
-(defn progress-bar [{:keys [value max]}]
-  [:progress {:value value
-              :max max
-              :class "progress"}])
+(defn progress-bar [{:keys [value max]} type]
+  (let [class (case type
+                :magic "progress-bar-magic"
+                "progress-bar-health")]
+    [:div {:class (str "progress-bar " class)}
+     [:div {:class "progress-bar-value" :style {:width (str (* 100 (/ value max)) "%")}}]]))
 
 (defn sidebar []
   (let [{:keys [floor player]} (:game @app-state)
@@ -70,27 +72,27 @@
      [:ol {:class "status-list"}
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
-       [:div {:class "status-list-value with-padding"}
+       [:div {:class "status-list-value"}
         gold]]
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
        [:div {:class "status-list-value"}
-        (progress-bar {:value health :max 100})]]
+        (progress-bar {:value health :max 100} :health)]]
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
        [:div {:class "status-list-value"}
-        (progress-bar {:value magic :max 100})]]
+        (progress-bar {:value magic :max 100} :magic)]]
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
-       [:div {:class "status-list-value with-padding"}
+       [:div {:class "status-list-value"}
         (str "Floor " floor)]]
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
-       [:div {:class "status-list-value with-padding"}
+       [:div {:class "status-list-value"}
         (str "Level " level " / " exp "xp")]]
       [:li {:class "status-list-item"}
        [:div {:class "status-list-label"}]
-       [:div {:class "status-list-value with-padding"}
+       [:div {:class "status-list-value"}
         (str "Steps " steps)]]]]))
 
 (defn title-screen [{:keys [new-game continue-game-available continue-game]}]

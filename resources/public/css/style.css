@@ -9,6 +9,8 @@ html {
 }
 
 body {
+  font-family: 'Roboto Slab', serif;
+  font-size: 16px;
   background-color: #000;
   padding: 0;
   margin: 0;
@@ -41,13 +43,58 @@ body {
   border: 0px solid #666;
 }
 
+.progress-bar {
+  display: block;
+  border-radius: 10px;
+  background-image: url('../images/barBack_horizontalLeft.png'),
+    url('../images/barBack_horizontalMid.png'),
+    url('../images/barBack_horizontalRight.png');
+  background-repeat: no-repeat,
+    repeat-x,
+    no-repeat;
+  background-position: left top, 0px, right top;
+  height: 18px;
+}
+
+.progress-bar .progress-bar-value {
+  display: block;
+  border-radius: 10px;
+  background-repeat: no-repeat,
+    repeat-x,
+    no-repeat;
+  background-position: left top, 0px, right top;
+  height: inherit;
+}
+
+.progress-bar.progress-bar-health .progress-bar-value {
+  background-image: url('../images/barGreen_horizontalLeft.png'),
+    url('../images/barGreen_horizontalMid.png'),
+    url('../images/barGreen_horizontalRight.png');
+}
+
+.progress-bar.progress-bar-magic .progress-bar-value {
+  background-image: url('../images/barBlue_horizontalLeft.png'),
+    url('../images/barBlue_horizontalBlue.png'),
+    url('../images/barBlue_horizontalRight.png');
+}
+
 .btn {
+  font-size: 16px;
   display: block;
   width: 100%;
-  padding: 10px 20px;
-  background-color: #CCC;
-  border: none;
+  padding: 10px 0px 12px 0px;
+  color: #FFF;
+  border-radius: 8px;
+  background-color: #838796;
+  border-image: url('../images/buttonLong_blue.png') 10 10 10 10 repeat;
+  border-width: 15px;
+  border-style: solid;
+  text-transform: uppercase;
 }
+.btn:disabled {
+  color: #666;
+}
+
 
 .btn-list {
   list-style-type: none;
@@ -66,13 +113,17 @@ body {
 .sidebar {
   position: absolute;
   background: #333;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 250px;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  width: 240px;
   z-index: 100;
   box-shadow: -4px 0px 13px 8px rgba(0,0,0,0.3);
-  padding: 10px;
+  border-radius: 5px;
+  background: #97714A;
+  border-image: url('../images/panel_brown.png') 10 10 10 10 repeat;
+  border-width: 15px;
+  border-style: solid;
 }
 
 .status-list {
@@ -85,6 +136,7 @@ body {
   width: 100%;
   height: 32px;
   margin-bottom: 5px;
+  border-radius: 5px;
 }
 .status-list-item:last-child {
   margin-bottom: 0px;
@@ -93,7 +145,6 @@ body {
   float: left;
   width: 32px;
   height: 32px;
-  background-color: #CCC;
 }
 .status-list-label.gold {}
 .status-list-label.health {}
@@ -102,20 +153,11 @@ body {
 .status-list-label.level {}
 
 .status-list-value {
-  background-color: #333;
-}
-.status-list-value {
   float: right;
   width: calc(100% - 32px);
   height: 32px;
-  background-color: #666;
-  color: #CCC;
-}
-.status-list-value.with-padding {
+  color: #000;
   padding: 6px 10px;
-}
-.status-list-value .progress {
-  height: 32px;
 }
 
 .game-wrapper {
@@ -128,17 +170,22 @@ body {
 }
 
 .adventure-log {
-  border: 1px solid #CCC;
-  color: #FFF;
-  background: #000;
+  color: #000;
+  background: #FFF;
   position: absolute;
-  width: calc(100% - 290px);
+  width: calc(100% - 250px);
   height: 200px;
   z-index: 200;
   bottom: 20px;
   left: 20px;
   right: 20px;
   overflow: hidden;
+  border-radius: 5px;
+  background: #D4BF90;
+  border-image: url('../images/panel_beige.png') 10 10 10 10 repeat;
+  border-width: 15px;
+  border-style: solid;
+  box-shadow: -4px 0px 13px 8px rgba(0,0,0,0.3);
 }
 .adventure-log ol {
   list-style-type: none;
@@ -147,7 +194,7 @@ body {
 }
 .adventure-log ol li {
   padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.3);
 }
 .adventure-log span {
   font-weight: bold;
