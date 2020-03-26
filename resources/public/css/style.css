@@ -1,0 +1,154 @@
+/* some style */
+
+/* apply a natural box layout model to all elements, but allowing components to change */
+html {
+  box-sizing: border-box;
+}
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+  background-color: #000;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  margin-left: -100px;
+  border: 1px solid #CD0A0A;
+}
+
+.page-dialog {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  width: 300px;
+  margin-left: -150px;
+}
+
+.progress {
+  display: block;
+  width: 100%;
+  height: 20px;
+  border: 0px solid #666;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #CCC;
+  border: none;
+}
+
+.btn-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.btn-list li {
+  margin-bottom: 5px;
+}
+.btn-list li:last-child {
+  margin-bottom: 0px;
+}
+
+.game-screen {}
+
+.sidebar {
+  position: absolute;
+  background: #333;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 250px;
+  z-index: 100;
+  box-shadow: -4px 0px 13px 8px rgba(0,0,0,0.3);
+  padding: 10px;
+}
+
+.status-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.status-list-item {
+  display: block;
+  width: 100%;
+  height: 32px;
+  margin-bottom: 5px;
+}
+.status-list-item:last-child {
+  margin-bottom: 0px;
+}
+.status-list-label {
+  float: left;
+  width: 32px;
+  height: 32px;
+  background-color: #CCC;
+}
+.status-list-label.gold {}
+.status-list-label.health {}
+.status-list-label.magic {}
+.status-list-label.floor {}
+.status-list-label.level {}
+
+.status-list-value {
+  background-color: #333;
+}
+.status-list-value {
+  float: right;
+  width: calc(100% - 32px);
+  height: 32px;
+  background-color: #666;
+  color: #CCC;
+}
+.status-list-value.with-padding {
+  padding: 6px 10px;
+}
+.status-list-value .progress {
+  height: 32px;
+}
+
+.game-wrapper {
+  position: absolute;
+  background: #000;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: calc(100% - 250px);
+}
+
+.adventure-log {
+  border: 1px solid #CCC;
+  color: #FFF;
+  background: #000;
+  position: absolute;
+  width: calc(100% - 290px);
+  height: 200px;
+  z-index: 200;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  overflow: hidden;
+}
+.adventure-log ol {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.adventure-log ol li {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+.adventure-log span {
+  font-weight: bold;
+}
