@@ -32,4 +32,4 @@ You can play this game [here](https://loving-morse-ada063.netlify.com/)
 - OffscreenCanvas doesn't work in Firefox, needs replacing
 - BSP doesn't generate very interesting segments
 - Seeded random number generation
-- Rooms are sized correctly for segments, but always positioned at (0, 0) - they should also be randomly positioned
+- Map size has to be 30x30 ... not sure why...

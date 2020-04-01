@@ -2,17 +2,6 @@
   (:require
    [dungeon-dive.level :as level]))
 
-(def important-tiles {:blank [0 0]
-                      :stairs [21 0]
-                      :wall-north [19 0]
-                      :wall-north-east [20 0]
-                      :wall-east [20 1]
-                      :wall-south [19 2]
-                      :wall-south-west [18 2]
-                      :wall-west [18 1]
-                      :wall-north-west [18 0]
-                      :wall-middle [0 13]})
-
 ;; We calculate the bit-mask-value depending on what surrounding tiles are *not* blocked
 (defn lookup-by-bitmask-value
   [value]
@@ -93,5 +82,5 @@
                              (= e 1)
                               (render-wall x y offscreen-ctx tiles (level/calc-bitmask-value level {:x x :y y}))
                               (render-floor x y offscreen-ctx tiles))))
-    ;;(draw-bsp offscreen-ctx bsp)
+    ;; (draw-bsp offscreen-ctx bsp)
     offscreen-canvas))

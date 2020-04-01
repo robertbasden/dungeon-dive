@@ -5,6 +5,8 @@
 ;;don't and we stop
 (def split-limit 10)
 
+(def map-size 30)
+
 (defn split-direction
   "Decide a random direction to split a segment"
   []
@@ -19,10 +21,7 @@
 
 (defn random-int-between
   [min max]
-  (rand-nth (range min max)))
-
-;; (rand-int n)
-;; Returns a random integer between 0 (inclusive) and n (exclusive) .
+  (rand-nth (range min (+ max 1))))
 
 (defn split-segment
   [{:keys [x y width height]}]
@@ -58,22 +57,21 @@
 (defn segment->room
   [{:keys [x y width height]}]
   (let [min-width (max (- (Math/floor (/ width 2)) 1) 2)
-        max-width (- width 2)
+        max-width (- width 3)
         min-height (max (- (Math/floor (/ height 2)) 1) 2)
-        max-height (- height 2)
+        max-height (- height 3)
         room-width (random-int-between min-width max-width)
-        room-height (random-int-between min-height max-height)]
-    {:x (+ x 1)
-     :y (+ y 1)
+        room-height (random-int-between min-height max-height)
+        min-x (+ x 1)
+        max-x (+ (- (- width 2) room-width) x)
+        min-y (+ y 1)
+        max-y (+ (- (- height 2) room-height) y)
+        room-x (random-int-between min-x max-x)
+        room-y (random-int-between min-y max-y)]
+    {:x room-x
+     :y room-y
      :width room-width
      :height room-height}))
-
-(comment
-  width (of segment) is 6
-  min-width is 2
-  max width should be 4 (with 1 on either side)
-  but room is 6)
-
 
 (defn bsp->rooms
   "Given a BSP tree created from the functions above create soom rooms that fit into each of the segments"
@@ -104,28 +102,17 @@
 
 (defn empty-level-data
   []
-  (vec (map (fn [] (vec (take 30 (repeat 1)))) (take 30 (repeat 1)))))
+  (vec (map (fn [] (vec (take map-size (repeat 1)))) (take map-size (repeat 1)))))
 
 (defn generate
   "Generate a new level"
   []
-  (let [bsp (create-bsp 30 30)
+  (let [bsp (create-bsp map-size map-size)
         rooms (bsp->rooms bsp)
         level-data (carve-rooms rooms (empty-level-data))]
     {:bsp bsp
      :rooms rooms
      :map-data level-data
-     :map-dataa [[1 1 1 1 1]
-                 [1 0 1 1 1]
-                 [1 0 1 1 1]
-                 [1 0 0 0 1]
-                 [1 0 1 0 1]
-                 [1 0 0 0 1]
-                 [1 1 0 1 1]
-                 [1 1 0 1 1]
-                 [1 1 0 0 1]
-                 [1 1 1 0 1]
-                 [1 1 1 1 1]]
      :enemies [{:id (random-uuid) :x 5 :y 2 :name "orc" :max-health 100 :health 20}
                {:id (random-uuid) :x 3 :y 3 :name "orc" :max-health 100 :health 70}
                {:id (random-uuid) :x 8 :y 2 :name "orc" :max-health 100 :health 80}]}))

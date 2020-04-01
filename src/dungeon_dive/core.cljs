@@ -16,19 +16,21 @@
 ;; Main navigation
 
 (defn new-game []
-  (let [{:keys [map-data bsp enemies]} (level/generate)]
+  (let [{:keys [map-data rooms bsp enemies]} (level/generate)
+        {:keys [x y width height]} (rand-nth rooms)]
     (swap! app-state assoc :current-screen :game
            :game {:floor 1
                   :level map-data
                   :bsp bsp
                   :enemies enemies
-                  :player {:position {:x 1 :y 1}
+                  :player {:position {:x x :y y}
                            :gold 0
                            :health 100
                            :magic 100
                            :level 1
                            :exp 0
                            :steps 0}
+                  :stairs {:x (+ x width) :y (+ y height)}
                   :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]})))
 
 (defn back-to-title []
@@ -135,6 +137,7 @@
         bsp (get-in @app-state [:game :bsp])
         enemies (get-in @app-state [:game :enemies])
         {:keys [x y]} (get-in @app-state [:game :player :position])
+        {sx :x sy :y} (get-in @app-state [:game :stairs])
         tiles (.getElementById js/document "tiles")
         level-ctx (rendering/render-level tiles level bsp)]
     (.clearRect ctx 0 0 10000 10000)
@@ -142,7 +145,7 @@
     (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)
     (doseq [enemy enemies]
       (draw-enemy enemy ctx tiles))
-    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* 2 32) (* 2 32) 32 32)))
+    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* sx 32) (* sy 32) 32 32)))
 
 (defn game-component
   []
@@ -200,7 +203,8 @@
 
 (defn next-floor
   []
-  (let [{:keys [map-data bsp enemies]} (level/generate)
+  (let [{:keys [map-data bsp rooms enemies]} (level/generate)
+        {:keys [x y width height]} (rand-nth rooms)
         next-floor-number (inc (get-in @app-state [:game :floor]))
         new-messages (conj (get-in @app-state [:game :messages]) {:id (random-uuid)
                                                                   :added (.getTime (js/Date.))
@@ -209,7 +213,8 @@
                                   :level map-data
                                   :bsp bsp
                                   :enemies enemies
-                                  :player (merge (get-in @app-state [:game :player]) {:position {:x 1 :y 1}})
+                                  :player (merge (get-in @app-state [:game :player]) {:position {:x x :y y}})
+                                  :stairs {:x (+ x width) :y (+ y height)}
                                   :messages new-messages})))
 
 (defn positions-are-equal? [{:keys [x y]} {cx :x cy :y}]
@@ -289,7 +294,7 @@
                               (< next-y 0))
         is-blocked? (= (level/get-tile (get-in @app-state [:game :level]) {:x next-x :y next-y} 1) 1)
         is-valid? (not (or is-out-of-bounds? is-blocked?))
-        is-moving-to-stairs? (positions-are-equal? {:x 2 :y 2} {:x next-x :y next-y})
+        is-moving-to-stairs? (positions-are-equal? (get-in @app-state [:game :stairs]) {:x next-x :y next-y})
         current-enemies (get-in @app-state [:game :enemies])
         enemy-collided-with (get-enemy-by-position {:x next-x :y next-y} current-enemies)]
     (if is-valid?
