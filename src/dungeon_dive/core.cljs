@@ -16,20 +16,20 @@
 ;; Main navigation
 
 (defn new-game []
-  (swap! app-state assoc :current-screen :game
-         :game {:floor 1
-                :level (level/generate)
-                :enemies [{:id (random-uuid) :x 5 :y 2 :name "orc" :max-health 100 :health 20}
-                          {:id (random-uuid) :x 3 :y 3 :name "orc" :max-health 100 :health 70}
-                          {:id (random-uuid) :x 8 :y 2 :name "orc" :max-health 100 :health 80}]
-                :player {:position {:x 1 :y 1}
-                         :gold 0
-                         :health 100
-                         :magic 100
-                         :level 1
-                         :exp 0
-                         :steps 0}
-                :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]}))
+  (let [{:keys [map-data bsp enemies]} (level/generate)]
+    (swap! app-state assoc :current-screen :game
+           :game {:floor 1
+                  :level map-data
+                  :bsp bsp
+                  :enemies enemies
+                  :player {:position {:x 1 :y 1}
+                           :gold 0
+                           :health 100
+                           :magic 100
+                           :level 1
+                           :exp 0
+                           :steps 0}
+                  :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]})))
 
 (defn back-to-title []
   (swap! app-state assoc :current-screen :title))
@@ -132,16 +132,17 @@
 (defn render-game
   [ctx]
   (let [level (get-in @app-state [:game :level])
+        bsp (get-in @app-state [:game :bsp])
         enemies (get-in @app-state [:game :enemies])
         {:keys [x y]} (get-in @app-state [:game :player :position])
         tiles (.getElementById js/document "tiles")
-        level-ctx (rendering/render-level tiles level)]
+        level-ctx (rendering/render-level tiles level bsp)]
     (.clearRect ctx 0 0 10000 10000)
     (.drawImage ctx level-ctx 0 0)
     (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)
     (doseq [enemy enemies]
       (draw-enemy enemy ctx tiles))
-    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* 9 32) (* 3 32) 32 32)))
+    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* 2 32) (* 2 32) 32 32)))
 
 (defn game-component
   []
@@ -199,15 +200,15 @@
 
 (defn next-floor
   []
-  (let [next-floor-number (inc (get-in @app-state [:game :floor]))
+  (let [{:keys [map-data bsp enemies]} (level/generate)
+        next-floor-number (inc (get-in @app-state [:game :floor]))
         new-messages (conj (get-in @app-state [:game :messages]) {:id (random-uuid)
                                                                   :added (.getTime (js/Date.))
                                                                   :text (str "You moved to floor " next-floor-number "!")})]
     (swap! app-state assoc :game {:floor next-floor-number
-                                  :level (level/generate)
-                                  :enemies [{:id 1 :x 5 :y 2 :max-health 100 :health 20}
-                                            {:id 2 :x 3 :y 3 :max-health 100 :health 70}
-                                            {:id 3 :x 8 :y 2 :max-health 100 :health 80}]
+                                  :level map-data
+                                  :bsp bsp
+                                  :enemies enemies
                                   :player (merge (get-in @app-state [:game :player]) {:position {:x 1 :y 1}})
                                   :messages new-messages})))
 
@@ -288,7 +289,7 @@
                               (< next-y 0))
         is-blocked? (= (level/get-tile (get-in @app-state [:game :level]) {:x next-x :y next-y} 1) 1)
         is-valid? (not (or is-out-of-bounds? is-blocked?))
-        is-moving-to-stairs? (positions-are-equal? {:x 9 :y 3} {:x next-x :y next-y})
+        is-moving-to-stairs? (positions-are-equal? {:x 2 :y 2} {:x next-x :y next-y})
         current-enemies (get-in @app-state [:game :enemies])
         enemy-collided-with (get-enemy-by-position {:x next-x :y next-y} current-enemies)]
     (if is-valid?

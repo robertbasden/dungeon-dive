@@ -1,19 +1,134 @@
 (ns dungeon-dive.level)
 
+;;This is used as the minimum limit of the respective side where we stop splitting when splitting to create new segments
+;;So for example if we set this to 4 and then we try and split a segment vertically whose height is less than 4, then we
+;;don't and we stop
+(def split-limit 10)
+
+(defn split-direction
+  "Decide a random direction to split a segment"
+  []
+  (if (> (rand) 0.5)
+    :horizontal
+    :vertical))
+
+(defn split-value
+  "Returns a random integer between min and n (inclusive of both)"
+  [min max]
+  (+ min (rand-int (+ max 1))))
+
+(defn random-int-between
+  [min max]
+  (rand-nth (range min max)))
+
+;; (rand-int n)
+;; Returns a random integer between 0 (inclusive) and n (exclusive) .
+
+(defn split-segment
+  [{:keys [x y width height]}]
+  (let [direction (split-direction)]
+    (case direction
+      :horizontal (do
+                    (if (>= height split-limit)
+                      (let [v (+ (Math/floor (/ height 2)) (split-value -1 1))] ;; split is not working (split-value 4 (- height 4))
+                        [{:x x :y y :width width :height v}
+                         {:x x :y (+ y v) :width width :height (- height v)}])
+                      nil))
+      :vertical (do
+                  (if (>= width split-limit)
+                    (let [v (+ (Math/floor (/ width 2)) (split-value -1 1))]
+                      [{:x x :y y :width v :height height}
+                       {:x (+ x v) :y y :width (- width v) :height height}])
+                    nil)))))
+
+(defn process-bsp
+  [segment]
+  (let [children (split-segment segment)]
+    (if (nil? children)
+      segment
+      (assoc segment :children (map process-bsp children)))))
+
+(defn create-bsp
+  "Create a BSP tree by splitting down leaf nodes (with some random variation of width / direction)
+  until the segments can not be split down any further"
+  [width height]
+  (process-bsp {:x 0 :y 0 :width width :height height}))
+
+
+(defn segment->room
+  [{:keys [x y width height]}]
+  (let [min-width (max (- (Math/floor (/ width 2)) 1) 2)
+        max-width (- width 2)
+        min-height (max (- (Math/floor (/ height 2)) 1) 2)
+        max-height (- height 2)
+        room-width (random-int-between min-width max-width)
+        room-height (random-int-between min-height max-height)]
+    {:x (+ x 1)
+     :y (+ y 1)
+     :width room-width
+     :height room-height}))
+
+(comment
+  width (of segment) is 6
+  min-width is 2
+  max width should be 4 (with 1 on either side)
+  but room is 6)
+
+
+(defn bsp->rooms
+  "Given a BSP tree created from the functions above create soom rooms that fit into each of the segments"
+  [bsp]
+  (let [leaves (filter (fn [s] (nil? (:children s))) (tree-seq map? :children bsp))]
+    (map segment->room leaves)))
+
+(defn map-level-data [func col]
+  (map-indexed (fn [y row]
+                 (map-indexed (fn [x e]
+                                (func [x y] e))
+                              row)) col))
+
+(defn carve-room
+  [level-data {:keys [x y width height]}]
+  (map-level-data (fn [[ty tx] current]
+                    (if
+                     (and
+                      (<= x tx (+ x width))
+                      (<= y ty (+ y height)))
+                      0
+                      current)
+                    ) level-data))
+
+(defn carve-rooms
+  [rooms level-data]
+  (reduce carve-room level-data rooms))
+
+(defn empty-level-data
+  []
+  (vec (map (fn [] (vec (take 30 (repeat 1)))) (take 30 (repeat 1)))))
+
 (defn generate
   "Generate a new level"
   []
-  [[1 1 1 1 1]
-   [1 0 1 1 1]
-   [1 0 1 1 1]
-   [1 0 0 0 1]
-   [1 0 1 0 1]
-   [1 0 0 0 1]
-   [1 1 0 1 1]
-   [1 1 0 1 1]
-   [1 1 0 0 1]
-   [1 1 1 0 1]
-   [1 1 1 1 1]])
+  (let [bsp (create-bsp 30 30)
+        rooms (bsp->rooms bsp)
+        level-data (carve-rooms rooms (empty-level-data))]
+    {:bsp bsp
+     :rooms rooms
+     :map-data level-data
+     :map-dataa [[1 1 1 1 1]
+                 [1 0 1 1 1]
+                 [1 0 1 1 1]
+                 [1 0 0 0 1]
+                 [1 0 1 0 1]
+                 [1 0 0 0 1]
+                 [1 1 0 1 1]
+                 [1 1 0 1 1]
+                 [1 1 0 0 1]
+                 [1 1 1 0 1]
+                 [1 1 1 1 1]]
+     :enemies [{:id (random-uuid) :x 5 :y 2 :name "orc" :max-health 100 :health 20}
+               {:id (random-uuid) :x 3 :y 3 :name "orc" :max-health 100 :health 70}
+               {:id (random-uuid) :x 8 :y 2 :name "orc" :max-health 100 :health 80}]}))
 
 (defn north
   "Get the position to the north of the supplied one"

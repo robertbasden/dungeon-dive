@@ -25,3 +25,11 @@ You can play this game [here](https://loving-morse-ada063.netlify.com/)
 ### Development
 
 - https://gamedevelopment.tutsplus.com/tutorials/how-to-use-tile-bitmasking-to-auto-tile-your-level-layouts--cms-25673
+- http://roguebasin.com/index.php?title=Main_Page
+
+## Todo
+
+- OffscreenCanvas doesn't work in Firefox, needs replacing
+- BSP doesn't generate very interesting segments
+- Seeded random number generation
+- Rooms are sized correctly for segments, but always positioned at (0, 0) - they should also be randomly positioned

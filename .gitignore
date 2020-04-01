@@ -13,3 +13,4 @@ pom.xml
 .rebel_readline_history
 .DS_Store
 resources/public/cljs-out
+.lein-failures
