@@ -24,34 +24,20 @@
   (rand-nth (range min (+ max 1))))
 
 (defn split-segment
-  [{:keys [x y width height]}]
-  (let [direction (split-direction)]
-    (case direction
-      :horizontal (do
-                    (if (>= height split-limit)
-                      (let [v (+ (Math/floor (/ height 2)) (split-value -1 1))] ;; split is not working (split-value 4 (- height 4))
-                        [{:x x :y y :width width :height v}
-                         {:x x :y (+ y v) :width width :height (- height v)}])
-                      nil))
-      :vertical (do
-                  (if (>= width split-limit)
-                    (let [v (+ (Math/floor (/ width 2)) (split-value -1 1))]
-                      [{:x x :y y :width v :height height}
-                       {:x (+ x v) :y y :width (- width v) :height height}])
-                    nil)))))
-
-(defn process-bsp
-  [segment]
-  (let [children (split-segment segment)]
-    (if (nil? children)
-      segment
-      (assoc segment :children (map process-bsp children)))))
-
-(defn create-bsp
-  "Create a BSP tree by splitting down leaf nodes (with some random variation of width / direction)
-  until the segments can not be split down any further"
-  [width height]
-  (process-bsp {:x 0 :y 0 :width width :height height}))
+  [{:keys [x y width height]} direction]
+  (case direction
+    :horizontal (do
+                  (if (>= height split-limit)
+                    (let [v (+ (Math/floor (/ height 2)) (split-value -1 1))]
+                      [{:x x :y y :width width :height v}
+                       {:x x :y (+ y v) :width width :height (- height v)}])
+                    nil))
+    :vertical (do
+                (if (>= width split-limit)
+                  (let [v (+ (Math/floor (/ width 2)) (split-value -1 1))]
+                    [{:x x :y y :width v :height height}
+                     {:x (+ x v) :y y :width (- width v) :height height}])
+                  nil))))
 
 
 (defn segment->room
@@ -73,11 +59,32 @@
      :width room-width
      :height room-height}))
 
+(defn process-bsp
+  [segment]
+  (let [direction (split-direction)
+        children (split-segment segment direction)]
+    (if (nil? children)
+      (assoc segment
+             :room (segment->room segment))
+      (assoc segment
+             :children (map process-bsp children)
+             :direction direction))))
+
+(defn create-bsp
+  "Create a BSP tree by splitting down leaf nodes (with some random variation of width / direction)
+  until the segments can not be split down any further"
+  [width height]
+  (process-bsp {:x 0 :y 0 :width width :height height}))
+
+(defn get-leaves
+  [bsp]
+  (filter (fn [s] (nil? (:children s))) (tree-seq map? :children bsp)))
+
 (defn bsp->rooms
-  "Given a BSP tree created from the functions above create soom rooms that fit into each of the segments"
+  "Given a BSP tree created from the functions above pull out the rooms that are present in the leaf segments"
   [bsp]
   (let [leaves (filter (fn [s] (nil? (:children s))) (tree-seq map? :children bsp))]
-    (map segment->room leaves)))
+    (map :room leaves)))
 
 (defn map-level-data [func col]
   (map-indexed (fn [y row]
@@ -108,7 +115,7 @@
   "Generate a new level"
   []
   (let [bsp (create-bsp map-size map-size)
-        rooms (bsp->rooms bsp)
+        rooms (bsp->rooms bsp) ;; don't need this step - we can pull the rooms out regaardless
         level-data (carve-rooms rooms (empty-level-data))]
     {:bsp bsp
      :rooms rooms
