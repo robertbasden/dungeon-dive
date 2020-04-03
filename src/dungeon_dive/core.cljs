@@ -16,8 +16,9 @@
 ;; Main navigation
 
 (defn new-game []
-  (let [{:keys [map-data rooms bsp enemies]} (level/generate)
-        {:keys [x y width height]} (rand-nth rooms)]
+  (let [{:keys [map-data bsp enemies]} (level/generate)
+        {:keys [x y width height]} (rand-nth (level/bsp->rooms bsp))
+        {stair-x :x stair-y :y stair-width :width stair-height :height} (rand-nth (level/bsp->rooms bsp))]
     (swap! app-state assoc :current-screen :game
            :game {:floor 1
                   :level map-data
@@ -30,7 +31,7 @@
                            :level 1
                            :exp 0
                            :steps 0}
-                  :stairs {:x (+ x width) :y (+ y height)}
+                  :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
                   :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]})))
 
 (defn back-to-title []
@@ -203,8 +204,9 @@
 
 (defn next-floor
   []
-  (let [{:keys [map-data bsp rooms enemies]} (level/generate)
-        {:keys [x y width height]} (rand-nth rooms)
+  (let [{:keys [map-data bsp enemies]} (level/generate)
+        {:keys [x y width height]} (rand-nth (level/bsp->rooms bsp))
+        {stair-x :x stair-y :y stair-width :width stair-height :height} (rand-nth (level/bsp->rooms bsp))
         next-floor-number (inc (get-in @app-state [:game :floor]))
         new-messages (conj (get-in @app-state [:game :messages]) {:id (random-uuid)
                                                                   :added (.getTime (js/Date.))
@@ -214,7 +216,7 @@
                                   :bsp bsp
                                   :enemies enemies
                                   :player (merge (get-in @app-state [:game :player]) {:position {:x x :y y}})
-                                  :stairs {:x (+ x width) :y (+ y height)}
+                                  :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
                                   :messages new-messages})))
 
 (defn positions-are-equal? [{:keys [x y]} {cx :x cy :y}]

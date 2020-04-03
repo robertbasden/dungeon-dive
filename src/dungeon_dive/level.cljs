@@ -54,10 +54,10 @@
         max-y (+ (- (- height 2) room-height) y)
         room-x (random-int-between min-x max-x)
         room-y (random-int-between min-y max-y)]
-    {:x room-x
-     :y room-y
-     :width room-width
-     :height room-height}))
+    {:x (+ x 1)
+     :y (+ y 1)
+     :width (- width 3)
+     :height (- height 3)}))
 
 (defn process-bsp
   [segment]
@@ -70,11 +70,24 @@
              :children (map process-bsp children)
              :direction direction))))
 
+(defn midpoint
+  [{:keys [x y width height]}]
+  {:x (Math/floor (+ x (/ width 2))) :y (Math/floor (+ y (/ height 2)))})
+
+(defn add-connections
+  [bsp]
+  (let [pairs (remove nil? (map :children (tree-seq map? :children bsp)))
+        connections (map (fn [[left-segment right-segment]]
+                           (let [{sx :x sy :y} (midpoint left-segment)
+                                 {ex :x ey :y} (midpoint right-segment)]
+                             {:sx sx :sy sy :ex ex :ey ey})) pairs)]
+    (assoc bsp :connections connections)))
+
 (defn create-bsp
   "Create a BSP tree by splitting down leaf nodes (with some random variation of width / direction)
   until the segments can not be split down any further"
   [width height]
-  (process-bsp {:x 0 :y 0 :width width :height height}))
+  (add-connections (process-bsp {:x 0 :y 0 :width width :height height})))
 
 (defn get-leaves
   [bsp]
@@ -91,6 +104,20 @@
                  (map-indexed (fn [x e]
                                 (func [x y] e))
                               row)) col))
+
+(defn carve-connection
+  [level-data {:keys [sx sy ex ey]}]
+  (map-level-data (fn [[ty tx] current]
+                    (if
+                     (and
+                      (<= sx tx ex)
+                      (<= sy ty ey))
+                      0
+                      current)) level-data))
+
+(defn carve-connections
+  [level-data connections]
+  (reduce carve-connection level-data connections))
 
 (defn carve-room
   [level-data {:keys [x y width height]}]
@@ -115,10 +142,8 @@
   "Generate a new level"
   []
   (let [bsp (create-bsp map-size map-size)
-        rooms (bsp->rooms bsp) ;; don't need this step - we can pull the rooms out regaardless
-        level-data (carve-rooms rooms (empty-level-data))]
+        level-data (carve-connections (carve-rooms (bsp->rooms bsp) (empty-level-data)) (:connections bsp))]
     {:bsp bsp
-     :rooms rooms
      :map-data level-data
      :enemies [{:id (random-uuid) :x 5 :y 2 :name "orc" :max-health 100 :health 20}
                {:id (random-uuid) :x 3 :y 3 :name "orc" :max-health 100 :health 70}

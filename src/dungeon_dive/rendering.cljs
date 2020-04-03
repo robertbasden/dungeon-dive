@@ -62,6 +62,23 @@
       (.strokeRect offscreen-ctx 0 0 960 960)
       (.restore offscreen-ctx))))
 
+(defn draw-connection
+  [offscreen-ctx {:keys [sx sy ex ey]}]
+  (do
+    (.save offscreen-ctx)
+    (set! (.-strokeStyle offscreen-ctx) "#61a601")
+    (set! (.-lineWidth offscreen-ctx) 2)
+    (.beginPath offscreen-ctx)
+    (.moveTo offscreen-ctx (+ 16 (* 32 sx)) (+ 16 (* 32 sy)))
+    (.lineTo offscreen-ctx (+ 16 (* 32 ex)) (+ 16 (* 32 ey)))
+    (.stroke offscreen-ctx)
+    (.restore offscreen-ctx)))
+
+(defn draw-connections
+  [offscreen-ctx bsp]
+  (doseq [connection (:connections bsp)]
+    (draw-connection offscreen-ctx connection)))
+
 (defn render-floor
   [x y offscreen-ctx tiles]
   (do
@@ -83,4 +100,5 @@
                               (render-wall x y offscreen-ctx tiles (level/calc-bitmask-value level {:x x :y y}))
                               (render-floor x y offscreen-ctx tiles))))
     ;; (draw-bsp offscreen-ctx bsp)
+    ;; (draw-connections offscreen-ctx bsp)
     offscreen-canvas))
