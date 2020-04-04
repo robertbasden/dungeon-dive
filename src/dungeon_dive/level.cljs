@@ -3,9 +3,9 @@
 ;;This is used as the minimum limit of the respective side where we stop splitting when splitting to create new segments
 ;;So for example if we set this to 4 and then we try and split a segment vertically whose height is less than 4, then we
 ;;don't and we stop
-(def split-limit 10)
+(def split-limit 8)
 
-(def map-size 30)
+(def map-size 15)
 
 (defn split-direction
   "Decide a random direction to split a segment"
@@ -21,6 +21,7 @@
 
 (defn random-int-between
   [min max]
+  (println min max)
   (rand-nth (range min (+ max 1))))
 
 (defn split-segment
@@ -40,7 +41,7 @@
                   nil))))
 
 
-(defn segment->room
+(defn old-segment->room
   [{:keys [x y width height]}]
   (let [min-width (max (- (Math/floor (/ width 2)) 1) 2)
         max-width (- width 3)
@@ -58,6 +59,13 @@
      :y (+ y 1)
      :width (- width 3)
      :height (- height 3)}))
+
+(defn segment->room
+  [{:keys [x y width height]}]
+  {:x (+ x 1)
+   :y (+ y 1)
+   :width (- width 3)
+   :height (- height 3)})
 
 (defn process-bsp
   [segment]
