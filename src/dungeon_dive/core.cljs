@@ -5,7 +5,8 @@
    [reagent.core :as reagent :refer [atom]]
    [dungeon-dive.level :as level]
    [dungeon-dive.rendering :as rendering]
-   [dungeon-dive.localstorage :as localstorage]))
+   [dungeon-dive.localstorage :as localstorage]
+   [dungeon-dive.fov :as fov]))
 
 ;; define your app data so that it doesn't get over-written on reload
 (defonce app-state (atom {:current-screen :title
@@ -137,10 +138,10 @@
   (let [level (get-in @app-state [:game :level])
         bsp (get-in @app-state [:game :bsp])
         enemies (get-in @app-state [:game :enemies])
-        {:keys [x y]} (get-in @app-state [:game :player :position])
+        {:keys [x y] :as player-position} (get-in @app-state [:game :player :position])
         {sx :x sy :y} (get-in @app-state [:game :stairs])
         tiles (.getElementById js/document "tiles")
-        level-ctx (rendering/render-level tiles level bsp)]
+        level-ctx (rendering/render-level tiles level bsp player-position)]
     (.clearRect ctx 0 0 10000 10000)
     (.drawImage ctx level-ctx 0 0)
     (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)

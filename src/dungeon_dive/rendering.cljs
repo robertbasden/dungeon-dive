@@ -1,6 +1,7 @@
 (ns dungeon-dive.rendering
   (:require
-   [dungeon-dive.level :as level]))
+   [dungeon-dive.level :as level]
+   [dungeon-dive.fov :as fov]))
 
 ;; We calculate the bit-mask-value depending on what surrounding tiles are *not* blocked
 (defn lookup-by-bitmask-value
@@ -87,11 +88,33 @@
     (.drawImage offscreen-ctx tiles (* 2 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)
     (.restore offscreen-ctx)))
 
+(defn draw-fov-line
+  [ctx {:keys [sx sy ex ey]}]
+  (do
+    (.beginPath ctx)
+    (.moveTo ctx sx sy)
+    (.lineTo ctx ex ey)
+    (.stroke ctx)))
+
+(defn draw-fov-lines
+  [ctx lines]
+  (.save ctx)
+  (set! (.-strokeStyle ctx) "#61a601")
+  (set! (.-lineWidth ctx) 2)
+  (set! (.-globalAlpha ctx) 0.6)
+  (doseq [line lines]
+    (draw-fov-line ctx line))
+  (.restore ctx))
+
 (defn render-level
   ""
-  [tiles level bsp]
+  [tiles level bsp player-position]
   (let [offscreen-canvas (js/OffscreenCanvas. 1000 1000)
-        offscreen-ctx (.getContext offscreen-canvas "2d")]
+        offscreen-ctx (.getContext offscreen-canvas "2d")
+        fov-lines (fov/calc-lines {:x 5 :y 5} 400)
+        fov-canvas (js/OffscreenCanvas. 1000 1000)
+        fov-ctx (.getContext fov-canvas "2d")
+        fov-map (fov/calc-fov player-position level 200)]
     (set! (.-fillStyle offscreen-ctx) "#b9db6d")
     (set! (.-font offscreen-ctx) "12px Arial")
     (level/do-level level (fn [[x y] e]
@@ -99,6 +122,13 @@
                              (= e 1)
                               (render-wall x y offscreen-ctx tiles (level/calc-bitmask-value level {:x x :y y}))
                               (render-floor x y offscreen-ctx tiles))))
+    ;; FOV
+    (set! (.-fillStyle fov-ctx) "rgba(0,0,0,1)")
+    (.fillRect fov-ctx 0 0 1000 1000)
+    ;; (draw-fov-lines fov-ctx fov-lines)
+    (doseq [{:keys [x y]} fov-map]
+      (.clearRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52))
+    (.drawImage offscreen-ctx fov-canvas 0 0)
     ;; (draw-bsp offscreen-ctx bsp)
     ;; (draw-connections offscreen-ctx bsp)
     offscreen-canvas))

@@ -31,5 +31,5 @@ You can play this game [here](https://loving-morse-ada063.netlify.com/)
 
 - OffscreenCanvas doesn't work in Firefox, needs replacing
 - BSP doesn't generate very interesting segments
-- Seeded random number generation
+- Seeded random number generation (https://stackoverflow.com/questions/26073686/how-to-generate-identical-series-of-pseudo-random-integers)
 - Map size has to be 30x30 ... not sure why...
