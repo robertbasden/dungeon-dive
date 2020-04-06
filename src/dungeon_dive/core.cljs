@@ -13,6 +13,7 @@
                           :game nil}))
 
 (def localstorage-key "dungeon-dive")
+(def fov-distance 320)
 
 ;; Main navigation
 
@@ -33,7 +34,7 @@
                            :exp 0
                            :steps 0}
                   :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
-                  :fov (fov/calc-fov {:x x :y y} map-data 200)
+                  :fov (fov/calc-fov {:x x :y y} map-data fov-distance)
                   :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]})))
 
 (defn back-to-title []
@@ -218,7 +219,7 @@
                                   :enemies enemies
                                   :player (merge (get-in @app-state [:game :player]) {:position {:x x :y y}})
                                   :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
-                                  :fov (fov/calc-fov {:x x :y y} map-data 200)
+                                  :fov (fov/calc-fov {:x x :y y} map-data fov-distance)
                                   :messages new-messages})))
 
 (defn positions-are-equal? [{:keys [x y]} {cx :x cy :y}]
@@ -324,7 +325,7 @@
             (do
               (swap! app-state assoc-in [:game :player :steps] (inc (get-in @app-state [:game :player :steps])))
               (swap! app-state assoc-in [:game :player :position] {:x next-x :y next-y})
-              (swap! app-state assoc-in [:game :fov] (fov/calc-fov {:x next-x :y next-y} (get-in @app-state [:game :level]) 200))))
+              (swap! app-state assoc-in [:game :fov] (fov/calc-fov {:x next-x :y next-y} (get-in @app-state [:game :level]) fov-distance))))
           (swap! app-state assoc :game (enemy-moves (:game @app-state)))
           (if (<= (get-in @app-state [:game :player :health]) 0)
             (game-over)))))))

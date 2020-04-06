@@ -134,6 +134,16 @@
   [coll elm]
   (some #(= elm %) coll))
 
+(defn distance
+  [{sx :x sy :y} {ex :x ey :y}]
+  (Math/sqrt (+ (* (- ex sx) (- ex sx)) (* (- ey sy) (- ey sy)))))
+
+(defn distance->alpha
+  [distance]
+  (if (> distance 4)
+    0.8
+    0.2))
+
 (defn render-level
   ""
   [tiles level bsp player-position enemies stairs fov]
@@ -153,12 +163,19 @@
     (.fillRect fov-ctx 0 0 1000 1000)
     ;; (draw-fov-lines fov-ctx fov-lines)
     (doseq [{:keys [x y]} fov]
-      (.clearRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52))
-    (.drawImage offscreen-ctx fov-canvas 0 0)
+      (let [d (distance player-position {:x x :y y})
+            alpha (distance->alpha d)]
+        (do
+          (.save fov-ctx)
+          (set! (.-globalAlpha fov-ctx) alpha)
+          (.clearRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52)
+          (.fillRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52)
+          (.restore fov-ctx))))
     (draw-enemies offscreen-ctx tiles (filter (fn [{:keys [x y]}]
                                                 (in? fov {:x x :y y})) enemies))
     (draw-stairs offscreen-ctx tiles (filter (fn [{:keys [x y]}]
                                                (in? fov {:x x :y y})) [stairs]))
+    (.drawImage offscreen-ctx fov-canvas 0 0)
     ;; (draw-bsp offscreen-ctx bsp)
     ;; (draw-connections offscreen-ctx bsp)
     offscreen-canvas))

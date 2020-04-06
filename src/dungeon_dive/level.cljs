@@ -21,7 +21,6 @@
 
 (defn random-int-between
   [min max]
-  (println min max)
   (rand-nth (range min (+ max 1))))
 
 (defn split-segment
