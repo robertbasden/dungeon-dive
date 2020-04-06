@@ -33,6 +33,7 @@
                            :exp 0
                            :steps 0}
                   :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
+                  :fov (fov/calc-fov {:x x :y y} map-data 200)
                   :messages [{:id (random-uuid) :added (.getTime (js/Date.)) :text "Your adventure has started!"}]})))
 
 (defn back-to-title []
@@ -136,12 +137,13 @@
 (defn render-game
   [ctx]
   (let [level (get-in @app-state [:game :level])
+        fov (get-in @app-state [:game :fov])
         bsp (get-in @app-state [:game :bsp])
         enemies (get-in @app-state [:game :enemies])
         {:keys [x y] :as player-position} (get-in @app-state [:game :player :position])
         {sx :x sy :y} (get-in @app-state [:game :stairs])
         tiles (.getElementById js/document "tiles")
-        level-ctx (rendering/render-level tiles level bsp player-position)]
+        level-ctx (rendering/render-level tiles level bsp player-position fov)]
     (.clearRect ctx 0 0 10000 10000)
     (.drawImage ctx level-ctx 0 0)
     (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)
@@ -218,6 +220,7 @@
                                   :enemies enemies
                                   :player (merge (get-in @app-state [:game :player]) {:position {:x x :y y}})
                                   :stairs {:x (+ stair-x stair-width) :y (+ stair-y stair-height)}
+                                  :fov (fov/calc-fov {:x x :y y} map-data 200)
                                   :messages new-messages})))
 
 (defn positions-are-equal? [{:keys [x y]} {cx :x cy :y}]
@@ -322,7 +325,8 @@
                 (swap! app-state assoc-in [:game :messages] new-messages)))
             (do
               (swap! app-state assoc-in [:game :player :steps] (inc (get-in @app-state [:game :player :steps])))
-              (swap! app-state assoc-in [:game :player :position] {:x next-x :y next-y})))
+              (swap! app-state assoc-in [:game :player :position] {:x next-x :y next-y})
+              (swap! app-state assoc-in [:game :fov] (fov/calc-fov {:x next-x :y next-y} (get-in @app-state [:game :level]) 200))))
           (swap! app-state assoc :game (enemy-moves (:game @app-state)))
           (if (<= (get-in @app-state [:game :player :health]) 0)
             (game-over)))))))

@@ -108,13 +108,11 @@
 
 (defn render-level
   ""
-  [tiles level bsp player-position]
+  [tiles level bsp player-position fov]
   (let [offscreen-canvas (js/OffscreenCanvas. 1000 1000)
         offscreen-ctx (.getContext offscreen-canvas "2d")
-        fov-lines (fov/calc-lines {:x 5 :y 5} 400)
         fov-canvas (js/OffscreenCanvas. 1000 1000)
-        fov-ctx (.getContext fov-canvas "2d")
-        fov-map (fov/calc-fov player-position level 200)]
+        fov-ctx (.getContext fov-canvas "2d")]
     (set! (.-fillStyle offscreen-ctx) "#b9db6d")
     (set! (.-font offscreen-ctx) "12px Arial")
     (level/do-level level (fn [[x y] e]
@@ -126,7 +124,7 @@
     (set! (.-fillStyle fov-ctx) "rgba(0,0,0,1)")
     (.fillRect fov-ctx 0 0 1000 1000)
     ;; (draw-fov-lines fov-ctx fov-lines)
-    (doseq [{:keys [x y]} fov-map]
+    (doseq [{:keys [x y]} fov]
       (.clearRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52))
     (.drawImage offscreen-ctx fov-canvas 0 0)
     ;; (draw-bsp offscreen-ctx bsp)
