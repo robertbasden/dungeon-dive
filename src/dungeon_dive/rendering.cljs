@@ -106,9 +106,37 @@
     (draw-fov-line ctx line))
   (.restore ctx))
 
+(defn draw-enemy
+  [ctx tiles {:keys [x y max-health health]}]
+  (let [health-remaining (/ health max-health)
+        bar-width (* 32 health-remaining)]
+    (do
+      (.save ctx)
+      (.drawImage ctx tiles (* 28 17) (* 6 17) 16 16 (* x 32) (* y 32) 32 32)
+      (set! (.-fillStyle ctx) "#000")
+      (.fillRect ctx (- (* x 32) 2) (+ (* y 32) 32) 36 8)
+      (set! (.-fillStyle ctx) "#1e8000")
+      (.fillRect ctx (* x 32) (+ (* y 32) 34) bar-width 4)
+      (.restore ctx))))
+
+(defn draw-enemies
+  [ctx tiles enemies]
+  (doseq [enemy enemies]
+    (draw-enemy ctx tiles enemy)))
+
+(defn draw-stairs
+  [ctx tiles stairs]
+  (doseq [{:keys [x y]} stairs]
+    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)))
+
+(defn in?
+  "true if coll contains elm"
+  [coll elm]
+  (some #(= elm %) coll))
+
 (defn render-level
   ""
-  [tiles level bsp player-position fov]
+  [tiles level bsp player-position enemies stairs fov]
   (let [offscreen-canvas (js/OffscreenCanvas. 1000 1000)
         offscreen-ctx (.getContext offscreen-canvas "2d")
         fov-canvas (js/OffscreenCanvas. 1000 1000)
@@ -127,6 +155,10 @@
     (doseq [{:keys [x y]} fov]
       (.clearRect fov-ctx (- (* x 32) 10) (- (* y 32) 10) 52 52))
     (.drawImage offscreen-ctx fov-canvas 0 0)
+    (draw-enemies offscreen-ctx tiles (filter (fn [{:keys [x y]}]
+                                                (in? fov {:x x :y y})) enemies))
+    (draw-stairs offscreen-ctx tiles (filter (fn [{:keys [x y]}]
+                                               (in? fov {:x x :y y})) [stairs]))
     ;; (draw-bsp offscreen-ctx bsp)
     ;; (draw-connections offscreen-ctx bsp)
     offscreen-canvas))

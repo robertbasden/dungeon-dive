@@ -140,16 +140,14 @@
         fov (get-in @app-state [:game :fov])
         bsp (get-in @app-state [:game :bsp])
         enemies (get-in @app-state [:game :enemies])
+        stairs (get-in @app-state [:game :stairs])
         {:keys [x y] :as player-position} (get-in @app-state [:game :player :position])
         {sx :x sy :y} (get-in @app-state [:game :stairs])
         tiles (.getElementById js/document "tiles")
-        level-ctx (rendering/render-level tiles level bsp player-position fov)]
+        level-ctx (rendering/render-level tiles level bsp player-position enemies stairs fov)]
     (.clearRect ctx 0 0 10000 10000)
     (.drawImage ctx level-ctx 0 0)
-    (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)
-    (doseq [enemy enemies]
-      (draw-enemy enemy ctx tiles))
-    (.drawImage ctx tiles (* 21 17) (* 0 17) 16 16 (* sx 32) (* sy 32) 32 32)))
+    (.drawImage ctx tiles (* 28 17) (* 0 17) 16 16 (* x 32) (* y 32) 32 32)))
 
 (defn game-component
   []
